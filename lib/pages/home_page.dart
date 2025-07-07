@@ -1,4 +1,5 @@
 import 'package:bilionare_budget_app/controller/transaction_controller.dart';
+import 'package:bilionare_budget_app/model/transaction_model.dart';
 import 'package:bilionare_budget_app/pages/add_transation_page.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -8,6 +9,37 @@ class HomePage extends StatelessWidget {
   HomePage({super.key});
 
   final TransactionController _controller = Get.find();
+
+  // Fungsi untuk menampilkan dialog konfirmasi
+  Future<bool?> _showConfirmationDialog(
+    BuildContext context,
+    TransactionModel transaction,
+  ) {
+    return Get.defaultDialog<bool>(
+      title: "Konfirmasi Hapus",
+      titleStyle: const TextStyle(fontWeight: FontWeight.bold),
+      middleText:
+          "Apakah Anda yakin ingin menghapus transaksi '${transaction.description ?? transaction.category}'?",
+      barrierDismissible: false,
+      radius: 15,
+      // Tombol Batal
+      cancel: TextButton(
+        onPressed: () =>
+            Get.back(result: false), // Mengembalikan false saat dibatalkan
+        child: const Text("Batal"),
+      ),
+      // Tombol Oke
+      confirm: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.red,
+          foregroundColor: Colors.white,
+        ),
+        onPressed: () =>
+            Get.back(result: true), // Mengembalikan true saat dikonfirmasi
+        child: const Text("Oke"),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -107,7 +139,15 @@ class HomePage extends StatelessWidget {
                     return Dismissible(
                       key: ValueKey(transaction.id),
                       direction: DismissDirection.endToStart,
+                      // --- LOGIKA KONFIRMASI DITAMBAHKAN DI SINI ---
+                      confirmDismiss: (direction) async {
+                        return await _showConfirmationDialog(
+                          context,
+                          transaction,
+                        );
+                      },
                       onDismissed: (direction) {
+                        // Logika ini hanya akan berjalan jika confirmDismiss mengembalikan true
                         _controller.deleteTransaction(transaction.id!);
                         Get.snackbar(
                           'Dihapus',
@@ -120,6 +160,10 @@ class HomePage extends StatelessWidget {
                         color: Colors.red.shade400,
                         alignment: Alignment.centerRight,
                         padding: const EdgeInsets.only(right: 20),
+                        margin: const EdgeInsets.symmetric(
+                          horizontal: 15,
+                          vertical: 5,
+                        ),
                         child: const Icon(Icons.delete, color: Colors.white),
                       ),
                       child: Card(
@@ -152,7 +196,7 @@ class HomePage extends StatelessWidget {
                             style: const TextStyle(fontWeight: FontWeight.bold),
                           ),
                           subtitle: Text(
-                            DateFormat('dd MMMM yyyy').format(transaction.date),
+                            DateFormat('dd MMMM yy').format(transaction.date),
                           ),
                           trailing: Text(
                             '${isIncome ? '+' : '-'} ${currencyFormatter.format(transaction.nominal)}',

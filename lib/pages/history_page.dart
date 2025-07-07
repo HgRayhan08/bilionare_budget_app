@@ -82,63 +82,42 @@ class _HistoryPageState extends State<HistoryPage> {
                 itemBuilder: (ctx, index) {
                   final transaction = transactions[index];
                   final isIncome = transaction.type == 'Income';
-                  return Dismissible(
-                    key: ValueKey(transaction.id),
-                    direction: DismissDirection.endToStart,
-                    onDismissed: (direction) {
-                      _controller.deleteTransaction(transaction.id!);
-                      Get.snackbar(
-                        'Dihapus',
-                        'Transaksi "${transaction.description ?? transaction.category}" telah dihapus.',
-                        snackPosition: SnackPosition.BOTTOM,
-                        margin: const EdgeInsets.all(10),
-                      );
-                    },
-                    background: Container(
-                      color: Colors.red.shade400,
-                      alignment: Alignment.centerRight,
-                      padding: const EdgeInsets.only(right: 20),
-                      child: const Icon(Icons.delete, color: Colors.white),
+                  return Card(
+                    margin: const EdgeInsets.symmetric(
+                      horizontal: 15,
+                      vertical: 5,
                     ),
-                    child: Card(
-                      margin: const EdgeInsets.symmetric(
-                        horizontal: 15,
-                        vertical: 5,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: ListTile(
+                      leading: CircleAvatar(
+                        backgroundColor: isIncome
+                            ? Colors.green.shade100
+                            : Colors.red.shade100,
+                        child: Icon(
+                          isIncome ? Icons.arrow_downward : Icons.arrow_upward,
+                          color: isIncome
+                              ? Colors.green.shade700
+                              : Colors.red.shade700,
+                        ),
                       ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
+                      title: Text(
+                        transaction.description?.isNotEmpty == true
+                            ? transaction.description!
+                            : transaction.category,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
-                      child: ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: isIncome
-                              ? Colors.green.shade100
-                              : Colors.red.shade100,
-                          child: Icon(
-                            isIncome
-                                ? Icons.arrow_downward
-                                : Icons.arrow_upward,
-                            color: isIncome
-                                ? Colors.green.shade700
-                                : Colors.red.shade700,
-                          ),
-                        ),
-                        title: Text(
-                          transaction.description?.isNotEmpty == true
-                              ? transaction.description!
-                              : transaction.category,
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        subtitle: Text(
-                          DateFormat('dd MMMM yyyy').format(transaction.date),
-                        ),
-                        trailing: Text(
-                          '${isIncome ? '+' : '-'} ${currencyFormatter.format(transaction.nominal)}',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: isIncome
-                                ? Colors.green.shade700
-                                : Colors.red.shade700,
-                          ),
+                      subtitle: Text(
+                        DateFormat('dd MMMM yyyy').format(transaction.date),
+                      ),
+                      trailing: Text(
+                        '${isIncome ? '+' : '-'} ${currencyFormatter.format(transaction.nominal)}',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: isIncome
+                              ? Colors.green.shade700
+                              : Colors.red.shade700,
                         ),
                       ),
                     ),

@@ -8,7 +8,6 @@ class LocalStorage {
   factory LocalStorage() => _instance;
   LocalStorage._internal();
 
-  // Kunci untuk SharedPreferences
   static const String _categoriesKey = 'transaction_categories';
 
   // --- Logika Database SQLite (Tidak Berubah) ---
@@ -89,27 +88,22 @@ class LocalStorage {
     });
   }
 
-  // --- Logika Kategori SharedPreferences (BARU) ---
+  // --- Logika Kategori SharedPreferences (DIPERBARUI) ---
 
-  // Mendapatkan instance SharedPreferences
   Future<SharedPreferences> _getPrefs() async {
     return await SharedPreferences.getInstance();
   }
 
-  /// Menyimpan daftar kategori ke SharedPreferences.
-  Future<void> saveCategories(List<String> categories) async {
+  Future<void> _saveCategories(List<String> categories) async {
     final prefs = await _getPrefs();
     await prefs.setStringList(_categoriesKey, categories);
   }
 
-  /// Mengambil daftar kategori dari SharedPreferences.
-  /// Jika belum ada, akan membuat daftar default.
   Future<List<String>> getCategories() async {
     final prefs = await _getPrefs();
     if (prefs.containsKey(_categoriesKey)) {
       return prefs.getStringList(_categoriesKey) ?? [];
     } else {
-      // Daftar default jika belum ada data yang tersimpan
       final defaultCategories = [
         'Makan',
         'Belanja',
@@ -118,20 +112,40 @@ class LocalStorage {
         'Warisan',
         'Lain-lain',
       ];
-      await saveCategories(defaultCategories);
+      await _saveCategories(defaultCategories);
       return defaultCategories;
     }
   }
 
-  /// Mengubah urutan kategori, memindahkan yang dipilih ke paling atas.
+  /// LOGIC BARU: Membuat kategori baru
+  Future<bool> createCategory(String newCategory) async {
+    if (newCategory.trim().isEmpty) return false;
+
+    List<String> currentCategories = await getCategories();
+    // Cek duplikat (tidak case-sensitive)
+    if (currentCategories.any(
+      (c) => c.toLowerCase() == newCategory.toLowerCase(),
+    )) {
+      return false; // Kategori sudah ada
+    }
+
+    currentCategories.add(newCategory.trim());
+    await _saveCategories(currentCategories);
+    return true;
+  }
+
+  /// LOGIC BARU: Menghapus kategori
+  Future<void> deleteCategory(String categoryToDelete) async {
+    List<String> currentCategories = await getCategories();
+    currentCategories.remove(categoryToDelete);
+    await _saveCategories(currentCategories);
+  }
+
   Future<List<String>> updateCategoryOrder(String selectedCategory) async {
     List<String> currentCategories = await getCategories();
-    // Hapus kategori jika sudah ada di dalam daftar
     currentCategories.remove(selectedCategory);
-    // Tambahkan kategori tersebut ke posisi paling awal (indeks 0)
     currentCategories.insert(0, selectedCategory);
-    // Simpan urutan baru
-    await saveCategories(currentCategories);
+    await _saveCategories(currentCategories);
     return currentCategories;
   }
 }

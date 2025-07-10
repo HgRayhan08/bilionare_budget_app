@@ -218,11 +218,12 @@ class HomePage extends StatelessWidget {
         ),
       ),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'createTransaction',
         onPressed: () {
           Get.to(() => const AddTransactionPage());
         },
-        child: const Icon(Icons.add),
         tooltip: 'Tambah Transaksi',
+        child: const Icon(Icons.add),
       ),
     );
   }

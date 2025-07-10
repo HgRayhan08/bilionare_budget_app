@@ -5,7 +5,6 @@ import '../local_storage/local_storage.dart';
 class TransactionController extends GetxController {
   final LocalStorage _localStorage = LocalStorage();
 
-  // Variabel reaktif yang sudah ada
   var allTransactions = <TransactionModel>[].obs;
   var incomeTransactions = <TransactionModel>[].obs;
   var expenseTransactions = <TransactionModel>[].obs;
@@ -13,36 +12,44 @@ class TransactionController extends GetxController {
   var dailyTransactions = <TransactionModel>[].obs;
   var weeklyTransactions = <TransactionModel>[].obs;
   var monthlyTransactions = <TransactionModel>[].obs;
-
-  // Variabel reaktif BARU untuk kategori
   var categories = <String>[].obs;
 
   @override
   void onInit() {
     super.onInit();
     fetchAllData();
-    fetchCategories(); // Panggil method untuk mengambil kategori
+    fetchCategories();
   }
 
-  // Method BARU untuk mengambil kategori
   Future<void> fetchCategories() async {
     categories.value = await _localStorage.getCategories();
   }
 
-  // Method BARU untuk memperbarui urutan kategori
   Future<void> updateCategoryOrder(String category) async {
     final updatedCategories = await _localStorage.updateCategoryOrder(category);
-    categories.value = updatedCategories; // Perbarui state agar UI ikut berubah
+    categories.value = updatedCategories;
   }
 
-  // Perbarui method addTransaction
+  /// METHOD BARU: Menambah kategori baru
+  Future<bool> addCategory(String newCategory) async {
+    bool success = await _localStorage.createCategory(newCategory);
+    if (success) {
+      await fetchCategories(); // Refresh list kategori
+    }
+    return success;
+  }
+
+  /// METHOD BARU: Menghapus kategori
+  Future<void> removeCategory(String category) async {
+    await _localStorage.deleteCategory(category);
+    await fetchCategories(); // Refresh list kategori
+  }
+
   Future<bool> addTransaction(TransactionModel transaction) async {
     try {
       await _localStorage.createTransaction(transaction);
-      await updateCategoryOrder(
-        transaction.category,
-      ); // Perbarui urutan kategori
-      await fetchAllData(); // Refresh data transaksi
+      await updateCategoryOrder(transaction.category);
+      await fetchAllData();
       return true;
     } catch (e) {
       print(e);
@@ -50,8 +57,17 @@ class TransactionController extends GetxController {
     }
   }
 
-  // --- Method lainnya tidak berubah ---
+  Future<void> deleteTransaction(int id) async {
+    try {
+      allTransactions.removeWhere((t) => t.id == id);
+      await _localStorage.deleteTransaction(id);
+      await fetchAllData();
+    } catch (e) {
+      print(e);
+    }
+  }
 
+  // --- Method lainnya tidak berubah ---
   Future<void> fetchAllData() async {
     allTransactions.value = await _localStorage.getAllTransactions();
     incomeTransactions.value = await _localStorage.getTransactionsByType(
@@ -71,16 +87,6 @@ class TransactionController extends GetxController {
       (sum, item) => sum + item.nominal,
     );
     totalBalance.value = income - expense;
-  }
-
-  Future<void> deleteTransaction(int id) async {
-    try {
-      allTransactions.removeWhere((t) => t.id == id);
-      await _localStorage.deleteTransaction(id);
-      await fetchAllData();
-    } catch (e) {
-      print(e);
-    }
   }
 
   void fetchChartData() async {

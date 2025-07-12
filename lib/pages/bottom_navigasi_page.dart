@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'home_page.dart';
 import 'diagram_page.dart';
 import 'history_page.dart';
+import 'neraca_page.dart'; // <-- IMPORT HALAMAN BARU
 
 class BottomNavigasiPage extends StatefulWidget {
   const BottomNavigasiPage({super.key});
@@ -14,11 +15,12 @@ class BottomNavigasiPage extends StatefulWidget {
 class _BottomNavigasiPageState extends State<BottomNavigasiPage> {
   int _selectedIndex = 0;
 
-  // --- TAMBAHKAN HALAMAN KATEGORI KE DALAM LIST ---
+  // --- TAMBAHKAN HALAMAN NERACA KE DALAM LIST ---
   final List<Widget> _pages = [
     HomePage(),
     const DiagramPage(),
-    CategoryPage(), // <-- HALAMAN BARU
+    const NeracaPage(), // <-- HALAMAN BARU
+    CategoryPage(),
     const HistoryPage(),
   ];
 
@@ -33,7 +35,7 @@ class _BottomNavigasiPageState extends State<BottomNavigasiPage> {
     return Scaffold(
       body: IndexedStack(index: _selectedIndex, children: _pages),
       bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed, // Agar semua label terlihat
+        type: BottomNavigationBarType.fixed, // Penting agar semua item terlihat
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Beranda'),
           BottomNavigationBarItem(
@@ -41,6 +43,10 @@ class _BottomNavigasiPageState extends State<BottomNavigasiPage> {
             label: 'Diagram',
           ),
           // --- TAMBAHKAN ITEM NAVIGASI BARU ---
+          BottomNavigationBarItem(
+            icon: Icon(Icons.account_balance_wallet), // Icon untuk neraca
+            label: 'Neraca',
+          ),
           BottomNavigationBarItem(
             icon: Icon(Icons.category),
             label: 'Kategori',
@@ -50,6 +56,7 @@ class _BottomNavigasiPageState extends State<BottomNavigasiPage> {
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
         selectedItemColor: Theme.of(context).colorScheme.primary,
+        unselectedItemColor: Colors.grey.shade600,
       ),
     );
   }

@@ -10,7 +10,7 @@ class LocalStorage {
 
   static const String _categoriesKey = 'transaction_categories';
 
-  // --- Logika Database SQLite (Tidak Berubah) ---
+  // --- Logika Database SQLite ---
   static Database? _database;
   final String _tableName = 'transactions';
 
@@ -38,6 +38,29 @@ class LocalStorage {
     ''');
   }
 
+  // --- LOGIC BARU: Menjumlahkan total income atau expense dalam satu bulan ---
+  /// Menggunakan query SQL SUM() untuk efisiensi.
+  Future<int> getTotalForMonth(int year, int month, String type) async {
+    final db = await database;
+    // Tentukan tanggal awal dan akhir bulan
+    final DateTime startDate = DateTime(year, month, 1);
+    // Tanggal akhir adalah hari pertama bulan berikutnya, query akan lebih mudah (<)
+    final DateTime endDate = DateTime(year, month + 1, 1);
+
+    final List<Map<String, dynamic>> result = await db.rawQuery(
+      'SELECT SUM(nominal) as total FROM $_tableName WHERE type = ? AND date >= ? AND date < ?',
+      [type, startDate.toIso8601String(), endDate.toIso8601String()],
+    );
+
+    // Hasil dari SUM bisa null jika tidak ada data, jadi kita perlu menanganinya.
+    if (result.isNotEmpty && result.first['total'] != null) {
+      return result.first['total'] as int;
+    }
+
+    return 0; // Kembalikan 0 jika tidak ada transaksi
+  }
+
+  // --- Metode CRUD Transaksi (Tidak Berubah) ---
   Future<int> createTransaction(TransactionModel transaction) async {
     final db = await database;
     return await db.insert(_tableName, transaction.toJson());
@@ -88,8 +111,7 @@ class LocalStorage {
     });
   }
 
-  // --- Logika Kategori SharedPreferences (DIPERBARUI) ---
-
+  // --- Logika Kategori SharedPreferences (Tidak Berubah) ---
   Future<SharedPreferences> _getPrefs() async {
     return await SharedPreferences.getInstance();
   }
@@ -117,24 +139,19 @@ class LocalStorage {
     }
   }
 
-  /// LOGIC BARU: Membuat kategori baru
   Future<bool> createCategory(String newCategory) async {
     if (newCategory.trim().isEmpty) return false;
-
     List<String> currentCategories = await getCategories();
-    // Cek duplikat (tidak case-sensitive)
     if (currentCategories.any(
       (c) => c.toLowerCase() == newCategory.toLowerCase(),
     )) {
-      return false; // Kategori sudah ada
+      return false;
     }
-
     currentCategories.add(newCategory.trim());
     await _saveCategories(currentCategories);
     return true;
   }
 
-  /// LOGIC BARU: Menghapus kategori
   Future<void> deleteCategory(String categoryToDelete) async {
     List<String> currentCategories = await getCategories();
     currentCategories.remove(categoryToDelete);

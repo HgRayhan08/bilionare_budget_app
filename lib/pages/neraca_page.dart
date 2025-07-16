@@ -208,7 +208,7 @@ class _NeracaPageState extends State<NeracaPage> {
         _buildHeaderRow(),
         // ✅ FIX: Baris yang duplikat dan salah telah dihapus.
         // Hanya baris ini yang digunakan untuk menampilkan aset bulan lalu.
-        _buildTableRow('Assets', null, total, formatter),
+        _buildTableRow('Assets', null, total + _previousMonthAssets, formatter),
         _buildTableRow(
           'Aset Bulan Lalu',
           _previousMonthAssets, // Masuk di kolom Debit
@@ -228,8 +228,8 @@ class _NeracaPageState extends State<NeracaPage> {
         // Baris Total
         _buildTableRow(
           'Total ',
-          _totalIncome,
-          total + _totalExpense,
+          _totalIncome + _previousMonthAssets,
+          total + _totalExpense + _previousMonthAssets,
           formatter,
           isTotal: true,
         ),
